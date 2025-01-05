@@ -2,8 +2,10 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useTheme } from '../context/ThemeContext';
+import { useAuth } from '../context/AuthContext';  // Ajoutez cet import
 
 export default function Register() {
+  const { register } = useAuth();  // Utilisez le hook useAuth
   const { isDarkMode } = useTheme();
   const navigate = useNavigate();
   const [formData, setFormData] = useState({
@@ -30,22 +32,22 @@ export default function Register() {
     }
 
     try {
-      const response = await fetch('votre-api/register', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData)
-      });
-
-      if (response.ok) {
-        navigate('/login');
-      } else {
-        setError('Erreur lors de l\'inscription');
+        const success = await register({
+          username: formData.username,
+          email: formData.email,
+          password: formData.password
+        });
+  
+        if (success) {
+          navigate('/login');
+        } else {
+          setError('Erreur lors de l\'inscription');
+        }
+      // eslint-disable-next-line no-unused-vars
+      } catch (err) {
+        setError('Erreur de connexion');
       }
-    // eslint-disable-next-line no-unused-vars
-    } catch (err) {
-      setError('Erreur de connexion');
-    }
-  };
+    };
 
   return (
     <div className="max-w-md mx-auto mt-10">

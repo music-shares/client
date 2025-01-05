@@ -1,10 +1,11 @@
-// src/pages/Login.jsx
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useTheme } from '../context/ThemeContext';
+import { useAuth } from '../context/AuthContext';  // Ajout de l'import
 
 export default function Login() {
   const { isDarkMode } = useTheme();
+  const { login } = useAuth();  // Utilisation du hook useAuth
   const navigate = useNavigate();
   const [formData, setFormData] = useState({
     email: '',
@@ -22,15 +23,9 @@ export default function Login() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const response = await fetch('votre-api/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData)
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        localStorage.setItem('token', data.token);
+      const success = await login(formData.email, formData.password);  // Utilisation de la fonction login du contexte
+      
+      if (success) {
         navigate('/');
       } else {
         setError('Email ou mot de passe incorrect');
@@ -40,7 +35,7 @@ export default function Login() {
       setError('Erreur de connexion');
     }
   };
-
+  
   return (
     <div className="max-w-md mx-auto mt-10">
       <h2 className={`text-2xl font-bold mb-6 ${isDarkMode ? 'text-white' : 'text-black'}`}>

@@ -7,38 +7,32 @@ const PlayerContext = createContext();
 export function PlayerProvider({ children }) {
   const [currentTrack, setCurrentTrack] = useState(null);
   const [isPlaying, setIsPlaying] = useState(false);
-  // eslint-disable-next-line no-unused-vars
-  const [playlist, setPlaylist] = useState([]);
+  const [volume, setVolume] = useState(50);
 
   const playTrack = (track) => {
     setCurrentTrack(track);
     setIsPlaying(true);
   };
 
-  const pauseTrack = () => {
+  const togglePlay = () => {
+    setIsPlaying(!isPlaying);
+  };
+
+  const stopPlay = () => {
     setIsPlaying(false);
   };
 
-  const nextTrack = () => {
-    // Implémentez la logique pour passer à la piste suivante
-  };
-
-  const previousTrack = () => {
-    // Implémentez la logique pour passer à la piste précédente
-  };
-
   return (
-    <PlayerContext.Provider 
-      value={{
-        currentTrack,
-        isPlaying,
-        playlist,
-        playTrack,
-        pauseTrack,
-        nextTrack,
-        previousTrack
-      }}
-    >
+    <PlayerContext.Provider value={{
+      currentTrack,
+      isPlaying,
+      setIsPlaying, // Ajouté ici
+      volume,
+      setVolume,
+      playTrack,
+      togglePlay,
+      stopPlay
+    }}>
       {children}
     </PlayerContext.Provider>
   );
@@ -48,4 +42,10 @@ PlayerProvider.propTypes = {
   children: PropTypes.node.isRequired,
 };
 
-export const usePlayer = () => useContext(PlayerContext);
+export const usePlayer = () => {
+  const context = useContext(PlayerContext);
+  if (!context) {
+    throw new Error('usePlayer must be used within a PlayerProvider');
+  }
+  return context;
+};

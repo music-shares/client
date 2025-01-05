@@ -18,71 +18,76 @@ export function AuthProvider({ children }) {
     }
   }, []);
 
-  const checkAuth = async (token) => {
-    try {
-      const response = await fetch('votre-api/check-auth', {
-        headers: {
-          'Authorization': `Bearer ${token}`
+    // src/context/AuthContext.jsx
+
+    // Définir l'URL de base de l'API
+    const API_BASE_URL = 'https://api.okloud-hub.com'; // ou votre URL d'API
+
+    // Mettre à jour les appels API
+    const checkAuth = async (token) => {
+        try {
+            const response = await fetch(`${API_BASE_URL}/check-auth`, {
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+            
+            if (response.ok) {
+                const userData = await response.json();
+                setUser(userData.user);
+            } else {
+                localStorage.removeItem('token');
+            }
+        } catch (error) {
+            console.error('Auth check failed:', error);
+            localStorage.removeItem('token');
         }
-      });
-      
-      if (response.ok) {
-        const userData = await response.json();
-        setUser(userData);
-      } else {
-        localStorage.removeItem('token');
-      }
-    } catch (error) {
-      console.error('Auth check failed:', error);
-      localStorage.removeItem('token');
-    }
-    setLoading(false);
-  };
+        setLoading(false);
+    };
 
-  const login = async (email, password) => {
-    try {
-      const response = await fetch('votre-api/login', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ email, password }),
-      });
+    const login = async (email, password) => {
+        try {
+            const response = await fetch(`${API_BASE_URL}/login`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ email, password }),
+            });
 
-      if (!response.ok) {
-        throw new Error('Login failed');
-      }
+            if (!response.ok) {
+                throw new Error('Login failed');
+            }
 
-      const data = await response.json();
-      localStorage.setItem('token', data.token);
-      setUser(data.user);
-      return true;
-    } catch (error) {
-      console.error('Login error:', error);
-      return false;
-    }
-  };
+            const data = await response.json();
+            localStorage.setItem('token', data.token);
+            setUser(data.user);
+            return true;
+        } catch (error) {
+            console.error('Login error:', error);
+            return false;
+        }
+    };
 
-  const register = async (userData) => {
-    try {
-      const response = await fetch('votre-api/register', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(userData),
-      });
+    const register = async (userData) => {
+        try {
+            const response = await fetch(`${API_BASE_URL}/register`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(userData),
+            });
 
-      if (!response.ok) {
-        throw new Error('Registration failed');
-      }
-
-      return true;
-    } catch (error) {
-      console.error('Registration error:', error);
-      return false;
-    }
-  };
+            if (!response.ok) {
+                throw new Error('Registration failed');
+            }
+            return true;
+        } catch (error) {
+            console.error('Registration error:', error);
+            return false;
+        }
+    };
 
   const logout = () => {
     localStorage.removeItem('token');
