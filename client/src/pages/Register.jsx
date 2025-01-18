@@ -1,20 +1,21 @@
-// src/pages/Register.jsx
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { useTheme } from '../context/ThemeContext';
-import { useAuth } from '../context/AuthContext';  // Ajoutez cet import
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { useToast } from "@/hooks/use-toast"
+import { useAuth } from '../context/AuthContext';
 
 export default function Register() {
-  const { register } = useAuth();  // Utilisez le hook useAuth
-  const { isDarkMode } = useTheme();
+  const { register } = useAuth();
   const navigate = useNavigate();
+  const { toast } = useToast();
   const [formData, setFormData] = useState({
     username: '',
     email: '',
     password: '',
     confirmPassword: ''
   });
-  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
 
   const handleChange = (e) => {
     setFormData({
@@ -25,145 +26,122 @@ export default function Register() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setLoading(true);
     
     if (formData.password !== formData.confirmPassword) {
-      setError('Les mots de passe ne correspondent pas');
+      toast({
+        variant: "destructive",
+        title: "Erreur",
+        description: "Les mots de passe ne correspondent pas"
+      });
+      setLoading(false);
       return;
     }
 
     try {
-        const success = await register({
-          username: formData.username,
-          email: formData.email,
-          password: formData.password
+      const success = await register({
+        username: formData.username,
+        email: formData.email,
+        password: formData.password
+      });
+
+      if (success) {
+        toast({
+          title: "Inscription réussie",
+          description: "Vous pouvez maintenant vous connecter"
         });
-  
-        if (success) {
-          navigate('/login');
-        } else {
-          setError('Erreur lors de l\'inscription');
-        }
-      // eslint-disable-next-line no-unused-vars
-      } catch (err) {
-        setError('Erreur de connexion');
+        navigate('/login');
+      } else {
+        toast({
+          variant: "destructive",
+          title: "Erreur",
+          description: "Erreur lors de l'inscription"
+        });
       }
-    };
+    // eslint-disable-next-line no-unused-vars
+    } catch (err) {
+      toast({
+        variant: "destructive",
+        title: "Erreur",
+        description: "Une erreur est survenue"
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
-    <div className="max-w-md mx-auto mt-10">
-      <h2 className={`text-2xl font-bold mb-6 ${isDarkMode ? 'text-white' : 'text-black'}`}>
-        Inscription
-      </h2>
-
-      {error && (
-        <div className="bg-red-500/10 border border-red-500 text-red-500 p-3 rounded-lg mb-4">
-          {error}
+    <div className="min-h-screen bg-black flex items-center justify-center p-4">
+      <div className="w-full max-w-md space-y-8 bg-zinc-900 p-8 rounded-xl border border-green-500/20">
+        <div className="text-center">
+          <h2 className="text-3xl font-bold text-green-500">Inscription</h2>
+          <p className="mt-2 text-gray-400">Créez votre compte</p>
         </div>
-      )}
+        
+        <form onSubmit={handleSubmit} className="mt-8 space-y-6">
+          <div className="space-y-4">
+            <div>
+              <Input
+                type="text"
+                name="username"
+                placeholder="Nom d'utilisateur"
+                value={formData.username}
+                onChange={handleChange}
+                required
+                className="bg-zinc-800 border-green-500/20 focus:border-green-500"
+              />
+            </div>
+            <div>
+              <Input
+                type="email"
+                name="email"
+                placeholder="Email"
+                value={formData.email}
+                onChange={handleChange}
+                required
+                className="bg-zinc-800 border-green-500/20 focus:border-green-500"
+              />
+            </div>
+            <div>
+              <Input
+                type="password"
+                name="password"
+                placeholder="Mot de passe"
+                value={formData.password}
+                onChange={handleChange}
+                required
+                className="bg-zinc-800 border-green-500/20 focus:border-green-500"
+              />
+            </div>
+            <div>
+              <Input
+                type="password"
+                name="confirmPassword"
+                placeholder="Confirmer le mot de passe"
+                value={formData.confirmPassword}
+                onChange={handleChange}
+                required
+                className="bg-zinc-800 border-green-500/20 focus:border-green-500"
+              />
+            </div>
+          </div>
 
-      <form onSubmit={handleSubmit} className="space-y-4">
-        <div>
-          <label 
-            className={`block mb-2 ${isDarkMode ? 'text-gray-200' : 'text-gray-700'}`}
-            htmlFor="username"
+          <Button
+            type="submit"
+            disabled={loading}
+            className="w-full bg-green-500 hover:bg-green-600 text-black font-semibold"
           >
-            Nom d&apos;utilisateur
-          </label>
-          <input
-            type="text"
-            id="username"
-            name="username"
-            value={formData.username}
-            onChange={handleChange}
-            className={`w-full p-3 rounded-lg border ${
-              isDarkMode 
-                ? 'bg-gray-800 border-gray-700 text-white' 
-                : 'bg-white border-gray-300'
-            }`}
-            required
-          />
-        </div>
+            {loading ? "Inscription en cours..." : "S'inscrire"}
+          </Button>
 
-        <div>
-          <label 
-            className={`block mb-2 ${isDarkMode ? 'text-gray-200' : 'text-gray-700'}`}
-            htmlFor="email"
-          >
-            Email
-          </label>
-          <input
-            type="email"
-            id="email"
-            name="email"
-            value={formData.email}
-            onChange={handleChange}
-            className={`w-full p-3 rounded-lg border ${
-              isDarkMode 
-                ? 'bg-gray-800 border-gray-700 text-white' 
-                : 'bg-white border-gray-300'
-            }`}
-            required
-          />
-        </div>
-
-        <div>
-          <label 
-            className={`block mb-2 ${isDarkMode ? 'text-gray-200' : 'text-gray-700'}`}
-            htmlFor="password"
-          >
-            Mot de passe
-          </label>
-          <input
-            type="password"
-            id="password"
-            name="password"
-            value={formData.password}
-            onChange={handleChange}
-            className={`w-full p-3 rounded-lg border ${
-              isDarkMode 
-                ? 'bg-gray-800 border-gray-700 text-white' 
-                : 'bg-white border-gray-300'
-            }`}
-            required
-          />
-        </div>
-
-        <div>
-          <label 
-            className={`block mb-2 ${isDarkMode ? 'text-gray-200' : 'text-gray-700'}`}
-            htmlFor="confirmPassword"
-          >
-            Confirmer le mot de passe
-          </label>
-          <input
-            type="password"
-            id="confirmPassword"
-            name="confirmPassword"
-            value={formData.confirmPassword}
-            onChange={handleChange}
-            className={`w-full p-3 rounded-lg border ${
-              isDarkMode 
-                ? 'bg-gray-800 border-gray-700 text-white' 
-                : 'bg-white border-gray-300'
-            }`}
-            required
-          />
-        </div>
-
-        <button
-          type="submit"
-          className="w-full bg-green-600 text-white py-3 rounded-lg hover:bg-green-700 transition-colors"
-        >
-          S&apos;inscrire
-        </button>
-      </form>
-
-      <p className={`mt-4 text-center ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>
-        Déjà un compte ?{' '}
-        <Link to="/login" className="text-green-500 hover:underline">
-          Se connecter
-        </Link>
-      </p>
+          <p className="text-center text-gray-400">
+            Déjà un compte ?{' '}
+            <Link to="/login" className="text-green-500 hover:text-green-400">
+              Se connecter
+            </Link>
+          </p>
+        </form>
+      </div>
     </div>
   );
 }

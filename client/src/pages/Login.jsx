@@ -1,17 +1,19 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { useTheme } from '../context/ThemeContext';
-import { useAuth } from '../context/AuthContext';  // Ajout de l'import
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { useToast } from "@/hooks/use-toast"
+import { useAuth } from '../context/AuthContext';
 
 export default function Login() {
-  const { isDarkMode } = useTheme();
-  const { login } = useAuth();  // Utilisation du hook useAuth
+  const { login } = useAuth();
   const navigate = useNavigate();
+  const { toast } = useToast();
   const [formData, setFormData] = useState({
     email: '',
     password: ''
   });
-  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
 
   const handleChange = (e) => {
     setFormData({
@@ -22,91 +24,89 @@ export default function Login() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setLoading(true);
+    
     try {
-      const success = await login(formData.email, formData.password);  // Utilisation de la fonction login du contexte
+      const success = await login(formData.email, formData.password);
       
       if (success) {
+        toast({
+          title: "Connexion réussie",
+          description: "Vous êtes maintenant connecté",
+        });
         navigate('/');
       } else {
-        setError('Email ou mot de passe incorrect');
+        toast({
+          variant: "destructive",
+          title: "Erreur de connexion",
+          description: "Email ou mot de passe incorrect"
+        });
       }
     // eslint-disable-next-line no-unused-vars
     } catch (err) {
-      setError('Erreur de connexion');
+      toast({
+        variant: "destructive",
+        title: "Erreur de connexion",
+        description: "Une erreur est survenue"
+      });
+    } finally {
+      setLoading(false);
     }
   };
   
   return (
-    <div className="max-w-md mx-auto mt-10">
-      <h2 className={`text-2xl font-bold mb-6 ${isDarkMode ? 'text-white' : 'text-black'}`}>
-        Connexion
-      </h2>
-
-      {error && (
-        <div className="bg-red-500/10 border border-red-500 text-red-500 p-3 rounded-lg mb-4">
-          {error}
+    <div className="min-h-screen bg-black flex items-center justify-center p-4">
+      <div className="w-full max-w-md space-y-8 bg-zinc-900 p-8 rounded-xl border border-green-500/20">
+        <div className="text-center">
+          <h2 className="text-3xl font-bold text-green-500">Connexion</h2>
+          <p className="mt-2 text-gray-400">Connectez-vous à votre compte</p>
         </div>
-      )}
+        
+        <form onSubmit={handleSubmit} className="mt-8 space-y-6">
+          <div className="space-y-4">
+            <div>
+              <Input
+                type="email"
+                name="email"
+                placeholder="Email"
+                value={formData.email}
+                onChange={handleChange}
+                required
+                className="bg-zinc-800 border-green-500/20 focus:border-green-500"
+              />
+            </div>
+            <div>
+              <Input
+                type="password"
+                name="password"
+                placeholder="Mot de passe"
+                value={formData.password}
+                onChange={handleChange}
+                required
+                className="bg-zinc-800 border-green-500/20 focus:border-green-500"
+              />
+            </div>
+          </div>
 
-      <form onSubmit={handleSubmit} className="space-y-4">
-        <div>
-          <label 
-            className={`block mb-2 ${isDarkMode ? 'text-gray-200' : 'text-gray-700'}`}
-            htmlFor="email"
+          <Button
+            type="submit"
+            disabled={loading}
+            className="w-full bg-green-500 hover:bg-green-600 text-black font-semibold"
           >
-            Email
-          </label>
-          <input
-            type="email"
-            id="email"
-            name="email"
-            value={formData.email}
-            onChange={handleChange}
-            className={`w-full p-3 rounded-lg border ${
-              isDarkMode 
-                ? 'bg-gray-800 border-gray-700 text-white' 
-                : 'bg-white border-gray-300'
-            }`}
-            required
-          />
-        </div>
+            {loading ? "Connexion..." : "Se connecter"}
+          </Button>
 
-        <div>
-          <label 
-            className={`block mb-2 ${isDarkMode ? 'text-gray-200' : 'text-gray-700'}`}
-            htmlFor="password"
-          >
-            Mot de passe
-          </label>
-          <input
-            type="password"
-            id="password"
-            name="password"
-            value={formData.password}
-            onChange={handleChange}
-            className={`w-full p-3 rounded-lg border ${
-              isDarkMode 
-                ? 'bg-gray-800 border-gray-700 text-white' 
-                : 'bg-white border-gray-300'
-            }`}
-            required
-          />
-        </div>
-
-        <button
-          type="submit"
-          className="w-full bg-green-600 text-white py-3 rounded-lg hover:bg-green-700 transition-colors"
-        >
-          Se connecter
-        </button>
-      </form>
-
-      <p className={`mt-4 text-center ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>
-        Pas encore de compte ?{' '}
-        <Link to="/register" className="text-green-500 hover:underline">
-          S&apos;inscrire
-        </Link>
-      </p>
+          <p className="text-center text-gray-400">
+            Pas encore de compte ?{" "}
+            <Link
+              to="/register"
+              className="text-green-500 hover:text-green-400"
+            >
+              S&apos;inscrire
+            </Link>
+          </p>
+        </form>
+      </div>
     </div>
   );
 }

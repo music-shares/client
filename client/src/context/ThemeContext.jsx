@@ -16,9 +16,14 @@ export function ThemeProvider({ children }) {
   );
 }
 
-// Ajout de la validation des props
 ThemeProvider.propTypes = {
   children: PropTypes.node.isRequired,
 };
 
-export const useTheme = () => useContext(ThemeContext);
+export const useTheme = () => {
+  const context = useContext(ThemeContext);
+  if (context === undefined) {
+    throw new Error('useTheme must be used within a ThemeProvider');
+  }
+  return context;
+};

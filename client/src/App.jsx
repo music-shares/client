@@ -1,44 +1,60 @@
-// src/App.jsx
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import { ThemeProvider } from './context/ThemeContext';
-import { AuthProvider } from './context/AuthContext';
-import { PlayerProvider } from './context/PlayerContext';
-import Header from './components/layout/Header';
-import Player from './components/layout/Player';
-import Home from './pages/Home';
-import Login from './pages/Login';
-import Register from './pages/Register';
-import PrivateRoute from './components/PrivateRoute';
+import { Toaster } from "@/components/ui/toaster";
+import { Toaster as Sonner } from "@/components/ui/sonner";
+import { TooltipProvider } from "@/components/ui/tooltip";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { AuthProvider, useAuth } from "@/context/AuthContext";
+import { ThemeProvider } from "@/context/ThemeContext";
+import Index from "./Index";
+import Login from "./pages/Login";
+import Register from "./pages/Register";
+import PropTypes from 'prop-types';
 
-function App() {
-  return (
-    <ThemeProvider>
-      <AuthProvider>
-        <PlayerProvider>
-          <Router>
-            <div className="flex flex-col min-h-screen">
-              <Header />
-              <main className="flex-1 p-4 pb-24">
-                <Routes>
-                  <Route path="/login" element={<Login />} />
-                  <Route path="/register" element={<Register />} />
-                  <Route 
-                    path="/" 
-                    element={
-                      <PrivateRoute>
-                        <Home />
-                      </PrivateRoute>
-                    }
-                  />
-                </Routes>
-              </main>
-              <Player />
-            </div>
-          </Router>
-        </PlayerProvider>
-      </AuthProvider>
-    </ThemeProvider>
-  );
-}
+const queryClient = new QueryClient();
+
+const ProtectedRoute = ({ children }) => {
+  const { user, loading } = useAuth();
+
+  if (loading) {
+    return <div className="min-h-screen bg-black flex items-center justify-center">
+      <div className="text-green-500">Chargement...</div>
+    </div>;
+  }
+
+  if (!user) {
+    return <Navigate to="/login" />;
+  }
+
+  return <>{children}</>;
+};
+
+ProtectedRoute.propTypes = {
+  children: PropTypes.node.isRequired,
+};
+
+const App = () => (
+  <QueryClientProvider client={queryClient}>
+    <AuthProvider>
+      <ThemeProvider>
+        <TooltipProvider>
+          <Toaster />
+          <Sonner />
+          <BrowserRouter>
+            <Routes>
+              <Route path="/login" element={<Login />} />
+              <Route path="/register" element={<Register />} />
+              <Route
+                path="/"
+                element={
+                    <Index />
+                }
+              />
+            </Routes>
+          </BrowserRouter>
+        </TooltipProvider>
+      </ThemeProvider>
+    </AuthProvider>
+  </QueryClientProvider>
+);
 
 export default App;
