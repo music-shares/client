@@ -5,10 +5,14 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider, useAuth } from "@/context/AuthContext";
 import { ThemeProvider } from "@/context/ThemeContext";
+import AllTracks from "./pages/AllTracks";
 import Index from "./Index";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
 import PropTypes from 'prop-types';
+import PrivateAdminRoute from './components/PrivateAdminRoute';
+import AdminPage from './pages/AdminPage';
+import Navbar from "./components/Navigation";
 
 const queryClient = new QueryClient();
 
@@ -40,15 +44,20 @@ const App = () => (
           <Toaster />
           <Sonner />
           <BrowserRouter>
+          <Navbar />
             <Routes>
+              <Route path="/" element={<Index />} />
               <Route path="/login" element={<Login />} />
               <Route path="/register" element={<Register />} />
-              <Route
-                path="/"
-                element={
-                    <Index />
-                }
-              />
+              <Route path="/tracks" element={<AllTracks />} />
+                <Route 
+                    path="/admin" 
+                    element={
+                        <PrivateAdminRoute>
+                            <AdminPage />
+                        </PrivateAdminRoute>
+                    } 
+                />
             </Routes>
           </BrowserRouter>
         </TooltipProvider>
